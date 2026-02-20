@@ -120,7 +120,15 @@ dotnet restore
 
 ## 📦 Сборка и публикация
 ### Сборка проекта
-dotnet build
+#### 1. Соберите проект в режиме Release:
+dotnet build -c Release
+#### 2. Найдите собранную DLL 
+в src/TrendLineLibrary/bin/Release/net6.0/TrendLineLibrary.dll
+#### 3. Скопируйте DLL в папку плагинов Tiger Trade:
+Windows: %APPDATA%\TigerTrade\Plugins\
+Mac: ~/Library/Application Support/TigerTrade/Plugins/
+#### 4. Перезапустите Tiger Trade Platform
+
 ### Публикация:
 - GitHub Releases
 - Внутренний NuGet (опционально)
@@ -154,7 +162,29 @@ dotnet test
 > В разработке. Планируется публикация через NuGet и GitHub Releases.
 
 ## 📄 Лицензия
-Проект распространяется под лицензией MIT. См. файл `LICENSE`.
+Этот проект распространяется под лицензией MIT. См. файл LICENSE для получения дополнительной информации.
 
 ## 🤝 Вклад
 Добро пожаловать к участию! Открыты PR и обсуждения по улучшению функциональности, архитектуры и совместимости.
+ 
+## 🤝 Участие в разработке
+- Форкните репозиторий
+- Создайте ветку для новой функциональности (git checkout -b feature/amazing-feature)
+- Зафиксируйте изменения (git commit -m 'Add some amazing feature')
+- Отправьте изменения в репозиторий (git push origin feature/amazing-feature)
+- Откройте Pull Request 
+
+## 📞 Контакты
+Разработчик: Ahim
+Email: [ваш.email@example.com]
+
+Tiger Trade Community: [ссылка на форум/чат]
+
+## 🙏 Благодарности
+- Tiger Trade Capital AG за предоставленный API
+- Сообществу Tiger Trade за обратную связь и тестирование
+
+## 🚦 Статус проекта
+https://img.shields.io/badge/build-passing-brightgreen
+https://img.shields.io/badge/tests-10%2520passed-blue
+https://img.shields.io/badge/version-1.0.0--beta-orange
