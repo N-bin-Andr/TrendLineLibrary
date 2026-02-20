@@ -1,9 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Tiger Trade dependencies -->
+    <Reference Include="TigerTrade.Chart">
+      <HintPath>..\..\lib\TigerTrade.Chart.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Dx">
+      <HintPath>..\..\lib\TigerTrade.Dx.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Core">
+      <HintPath>..\..\lib\TigerTrade.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Tc">
+      <HintPath>..\..\lib\TigerTrade.Tc.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

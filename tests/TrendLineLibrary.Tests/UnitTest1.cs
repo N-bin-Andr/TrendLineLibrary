@@ -1,10 +1,18 @@
+using Xunit;
+using TrendLineLibrary.Objects;
+
 namespace TrendLineLibrary.Tests;
 
-public class UnitTest1
+public class TrendLineObjectTests
 {
     [Fact]
-    public void Test1()
+    public void TrendLineObject_DefaultConstructor_ShouldInitializeTwoPoints()
     {
+        // Arrange & Act
+        var line = new TrendLineObject();
 
+        // Assert
+        Assert.NotNull(line);
+        Assert.Equal(2, line.ControlPoints.Length);
     }
 }
