@@ -171,49 +171,6 @@ namespace TrendLineLibrary.Objects
         private Point _endScreen;
         private Rect _lineBounds;
 
-        protected override void Prepare()
-        {
-            base.Prepare();
-
-            if (Canvas == null || ControlPoints.Length < 2) return;
-
-            // Преобразуем координаты точек в экранные
-            Point p1 = ToPoint(ControlPoints[0]);
-            Point p2 = ToPoint(ControlPoints[1]);
-
-            // Если включено удлинение, продлеваем линию до границ холста
-            if (_extendLeft || _extendRight)
-            {
-                double k = (p2.Y - p1.Y) / (p2.X - p1.X);
-                double b = p1.Y - k * p1.X;
-
-                if (_extendLeft)
-                {
-                    double leftX = Canvas.Rect.Left;
-                    double leftY = k * leftX + b;
-                    p1 = new Point(leftX, leftY);
-                }
-
-                if (_extendRight)
-                {
-                    double rightX = Canvas.Rect.Right;
-                    double rightY = k * rightX + b;
-                    p2 = new Point(rightX, rightY);
-                }
-            }
-
-            _startScreen = p1;
-            _endScreen = p2;
-
-            // Вычисляем ограничивающий прямоугольник для хит-теста
-            double minX = Math.Min(_startScreen.X, _endScreen.X) - 5;
-            double minY = Math.Min(_startScreen.Y, _endScreen.Y) - 5;
-            double maxX = Math.Max(_startScreen.X, _endScreen.X) + 5;
-            double maxY = Math.Max(_startScreen.Y, _endScreen.Y) + 5;
-
-            _lineBounds = new Rect(minX, minY, maxX - minX, maxY - minY);
-        }
-
 
         protected override void Draw(DxVisualQueue visual, ref List<ObjectLabelInfo> labels)
         {
@@ -294,8 +251,30 @@ namespace TrendLineLibrary.Objects
                 // Получаем индекс свечи по X координате
                 int candleIndex = (int)op.X;
 
-                // Здесь будет логика примагничивания
-                // Пока просто заглушка
+                // Получаем тип графика
+                var stockType = Canvas.StockType;
+
+                // Пробуем получить данные через разные методы
+                // 1. Через GetCluster (для кластеров)
+                // var cluster = DataProvider.GetCluster(candleIndex);
+
+                // 2. Через индикаторы
+                // var value = DataProvider.GetValue(candleIndex);
+
+                System.Diagnostics.Debug.WriteLine($"=== Debug Info ===");
+                System.Diagnostics.Debug.WriteLine($"Candle index: {candleIndex}");
+                System.Diagnostics.Debug.WriteLine($"Stock type: {stockType}");
+                System.Diagnostics.Debug.WriteLine($"DataProvider type: {DataProvider.GetType()}");
+
+                // Выведем все методы DataProvider для понимания
+                var methods = DataProvider.GetType().GetMethods();
+                foreach (var method in methods)
+                {
+                    if (method.Name.Contains("Candle") || method.Name.Contains("Get") || method.Name.Contains("Item"))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Method: {method.Name}");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -396,6 +375,81 @@ namespace TrendLineLibrary.Objects
             var textBrush = new XBrush(_lineColor);
             visual.DrawString(_text, font, textBrush, textRect);
         }
+
+
+        protected override void Prepare()
+        {
+            base.Prepare();
+
+            if (Canvas == null || ControlPoints.Length < 2) return;
+
+            // Преобразуем координаты точек в экранные
+            Point p1 = ToPoint(ControlPoints[0]);
+            Point p2 = ToPoint(ControlPoints[1]);
+
+            // Исследуем DataProvider при каждом Prepare (для отладки)
+            if (DataProvider != null)
+            {
+                System.Diagnostics.Debug.WriteLine("=== DataProvider Properties ===");
+                var properties = DataProvider.GetType().GetProperties();
+                foreach (var prop in properties)
+                {
+                    try
+                    {
+                        var value = prop.GetValue(DataProvider);
+                        System.Diagnostics.Debug.WriteLine($"Property: {prop.Name} = {value}");
+                    }
+                    catch
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Property: {prop.Name} = [Cannot read]");
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine("=== DataProvider Methods ===");
+                var methods = DataProvider.GetType().GetMethods();
+                foreach (var method in methods)
+                {
+                    if (method.Name.Contains("Candle") || method.Name.Contains("Get") || method.Name.Contains("Item") || method.Name.Contains("Data"))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Method: {method.Name}");
+                    }
+                }
+            }
+
+            // Если включено удлинение, продлеваем линию до границ холста
+            if (_extendLeft || _extendRight)
+            {
+                double k = (p2.Y - p1.Y) / (p2.X - p1.X);
+                double b = p1.Y - k * p1.X;
+
+                if (_extendLeft)
+                {
+                    double leftX = Canvas.Rect.Left;
+                    double leftY = k * leftX + b;
+                    p1 = new Point(leftX, leftY);
+                }
+
+                if (_extendRight)
+                {
+                    double rightX = Canvas.Rect.Right;
+                    double rightY = k * rightX + b;
+                    p2 = new Point(rightX, rightY);
+                }
+            }
+
+            _startScreen = p1;
+            _endScreen = p2;
+
+            // Вычисляем ограничивающий прямоугольник для хит-теста
+            double minX = Math.Min(_startScreen.X, _endScreen.X) - 5;
+            double minY = Math.Min(_startScreen.Y, _endScreen.Y) - 5;
+            double maxX = Math.Max(_startScreen.X, _endScreen.X) + 5;
+            double maxY = Math.Max(_startScreen.Y, _endScreen.Y) + 5;
+
+            _lineBounds = new Rect(minX, minY, maxX - minX, maxY - minY);
+        }
+
+
 
 
 
