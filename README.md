@@ -158,3 +158,143 @@ dotnet test
 
 ## 🤝 Вклад
 Добро пожаловать к участию! Открыты PR и обсуждения по улучшению функциональности, архитектуры и совместимости.
+
+
+
+
+## 📋 Статус разработки
+
+### ✅ Завершено
+- [x] Инициализация Git репозитория
+- [x] Создание структуры проекта
+- [x] Настройка .NET 8.0 проектов (библиотека и тесты)
+- [x] Добавление зависимостей Tiger Trade
+- [x] Базовый класс `TrendLineObject` с атрибутами
+- [x] Свойства для настройки линии (цвет, толщина, стиль)
+- [x] Свойства для настройки текста (текст, выравнивание, размер шрифта)
+- [x] Успешная компиляция проекта
+
+### 🚧 В процессе разработки
+- [ ] Реализация метода `Draw()` - отрисовка линии
+- [ ] Реализация метода `InObject()` - определение попадания курсора
+- [ ] Контрольные точки для редактирования
+- [ ] Удлинение концов (влево/вправо)
+- [ ] Примагничивание к свечам
+- [ ] Отрисовка текста с фоном (линия под текстом скрывается)
+
+### ⏳ В планах
+- [ ] Система алертов (интеграция с ChartAlertSettings)
+- [ ] Сохранение и загрузка конфигураций
+- [ ] Группировка нескольких линий
+- [ ] Unit-тесты для геометрии
+- [ ] Unit-тесты для алертов
+- [ ] Документация по использованию
+- [ ] Примеры интеграции
+
+## 🏗️ Архитектура
+TrendLineLibrary/
+├── .gitignore # Игнорируемые файлы Git
+├── README.md # Документация и план разработки
+├── global.json # Глобальные настройки .NET
+├── TrendLineLibrary.sln # Solution файл
+├── lib/ # Внешние зависимости (DLL Tiger Trade)
+│ ├── .gitkeep
+│ ├── TigerTrade.Chart.dll
+│ ├── TigerTrade.Dx.dll
+│ ├── TigerTrade.Core.dll
+│ └── TigerTrade.Tc.dll
+├── docs/ # Документация
+│ └── .gitkeep
+├── scripts/ # Вспомогательные скрипты
+│ └── .gitkeep
+├── src/ # Исходный код
+│ └── TrendLineLibrary/ # Основная библиотека
+│ ├── TrendLineLibrary.csproj
+│ └── Objects/ # Классы графических объектов
+│ └── TrendLineObject.cs
+└── tests/ # Unit-тесты
+└── TrendLineLibrary.Tests/
+├── TrendLineLibrary.Tests.csproj
+└── UnitTest1.cs # Базовые тесты
+
+
+## 🔧 Технические детали
+
+### Целевая платформа
+- .NET 8.0-windows
+- WPF интеграция (UseWPF=true)
+
+### Зависимости Tiger Trade
+- TigerTrade.Chart.dll
+- TigerTrade.Dx.dll
+- TigerTrade.Core.dll
+- TigerTrade.Tc.dll
+
+### NuGet пакеты (тесты)
+- xUnit
+- Moq
+- FluentAssertions
+
+## 🚀 Сборка и тестирование
+
+```bash
+# Восстановление пакетов
+dotnet restore
+
+# Сборка проекта
+dotnet build
+
+# Запуск тестов
+dotnet test
+
+# Очистка
+dotnet clean
+
+📝 Класс TrendLineObject
+Текущая реализация
+[DataContract(Name = "TrendLineObject")]
+[ChartObject("X_TrendLine", "Трендовая линия", 2)]
+public sealed class TrendLineObject : ObjectBase
+{
+    // Свойства линии
+    public XColor LineColor { get; set; }
+    public int LineWidth { get; set; }
+    public XDashStyle LineStyle { get; set; }
+    
+    // Свойства текста
+    public string Text { get; set; }
+    public ObjectTextAlignment TextAlignment { get; set; }
+    public int FontSize { get; set; }
+    
+    // TODO: Реализовать методы
+    - Draw()
+    - InObject()
+    - GetControlPoint()
+    - DrawControlPoints()
+    - CheckAlert()
+}
+
+План реализации методов
+Draw() - отрисовка линии с учетом стилей
+
+InObject() - проверка попадания курсора (с допуском)
+
+GetControlPoint() - определение активной контрольной точки
+
+DrawControlPoints() - отрисовка точек редактирования
+
+Prepare() - подготовка данных перед отрисовкой
+
+ControlPointChanged() - обработка изменения точек (примагничивание)
+
+CheckAlert() - проверка алертов
+
+🌿 Ветки
+main - стабильная версия (защищена)
+
+feature/trend-line-object - активная разработка
+
+📊 Прогресс реализации
+Дата начала: 20 февраля 2024
+Текущий этап: Начальная реализация класса
+Следующая задача: Реализация метода Draw()
