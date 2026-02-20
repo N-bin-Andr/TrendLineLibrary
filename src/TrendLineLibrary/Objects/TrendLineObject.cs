@@ -23,6 +23,10 @@ namespace TrendLineLibrary.Objects
         private string _text = string.Empty;
         private ObjectTextAlignment _textAlignment = ObjectTextAlignment.CenterTop;
         private int _fontSize = 14;
+        private bool _extendLeft = false;
+        private bool _extendRight = false;
+        private bool _magnetEnabled = true;
+
 
         // Свойства линии
         [DataMember(Name = "LineColor")]
@@ -106,6 +110,45 @@ namespace TrendLineLibrary.Objects
             }
         }
 
+        [DataMember(Name = "ExtendLeft")]
+        [Category("Поведение"), DisplayName("Удлинить влево")]
+        public bool ExtendLeft
+        {
+            get => _extendLeft;
+            set
+            {
+                if (value == _extendLeft) return;
+                _extendLeft = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [DataMember(Name = "ExtendRight")]
+        [Category("Поведение"), DisplayName("Удлинить вправо")]
+        public bool ExtendRight
+        {
+            get => _extendRight;
+            set
+            {
+                if (value == _extendRight) return;
+                _extendRight = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [DataMember(Name = "MagnetEnabled")]
+        [Category("Поведение"), DisplayName("Примагничивание к свечам")]
+        public bool MagnetEnabled
+        {
+            get => _magnetEnabled;
+            set
+            {
+                if (value == _magnetEnabled) return;
+                _magnetEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+
         protected override int PenWidth => LineWidth;
 
         public TrendLineObject()
@@ -135,8 +178,32 @@ namespace TrendLineLibrary.Objects
             if (Canvas == null || ControlPoints.Length < 2) return;
 
             // Преобразуем координаты точек в экранные
-            _startScreen = ToPoint(ControlPoints[0]);
-            _endScreen = ToPoint(ControlPoints[1]);
+            Point p1 = ToPoint(ControlPoints[0]);
+            Point p2 = ToPoint(ControlPoints[1]);
+
+            // Если включено удлинение, продлеваем линию до границ холста
+            if (_extendLeft || _extendRight)
+            {
+                double k = (p2.Y - p1.Y) / (p2.X - p1.X);
+                double b = p1.Y - k * p1.X;
+
+                if (_extendLeft)
+                {
+                    double leftX = Canvas.Rect.Left;
+                    double leftY = k * leftX + b;
+                    p1 = new Point(leftX, leftY);
+                }
+
+                if (_extendRight)
+                {
+                    double rightX = Canvas.Rect.Right;
+                    double rightY = k * rightX + b;
+                    p2 = new Point(rightX, rightY);
+                }
+            }
+
+            _startScreen = p1;
+            _endScreen = p2;
 
             // Вычисляем ограничивающий прямоугольник для хит-теста
             double minX = Math.Min(_startScreen.X, _endScreen.X) - 5;
@@ -165,6 +232,9 @@ namespace TrendLineLibrary.Objects
                 labels.Add(new ObjectLabelInfo(ControlPoints[0].Y, _lineColor));
                 labels.Add(new ObjectLabelInfo(ControlPoints[1].Y, _lineColor));
             }
+
+            // Рисуем текст поверх линии с фоном
+            DrawText(visual);
         }
 
         protected override bool InObject(int x, int y)
@@ -213,6 +283,27 @@ namespace TrendLineLibrary.Objects
 
             return -1;
         }
+        public override void ExtraPointChanged(int index, ObjectPoint op)
+        {
+            base.ExtraPointChanged(index, op);
+
+            if (!_magnetEnabled || DataProvider == null || Canvas == null) return;
+
+            try
+            {
+                // Получаем индекс свечи по X координате
+                int candleIndex = (int)op.X;
+
+                // Здесь будет логика примагничивания
+                // Пока просто заглушка
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in magnet: {ex.Message}");
+            }
+        }
+
+
 
         // Вспомогательный метод для расчета расстояния от точки до отрезка
         private double DistanceToSegment(Point p, Point a, Point b)
@@ -235,5 +326,78 @@ namespace TrendLineLibrary.Objects
             // Возвращаем расстояние
             return Math.Sqrt((p.X - projX) * (p.X - projX) + (p.Y - projY) * (p.Y - projY));
         }
+
+        private void DrawText(DxVisualQueue visual)
+        {
+            if (string.IsNullOrEmpty(_text) || TextAlignment == ObjectTextAlignment.Hide || Canvas == null)
+                return;
+
+            var font = new XFont(Canvas.ChartFont.Name, _fontSize);
+            var textSize = font.GetSize(_text);
+
+            // Определяем позицию текста (по центру линии)
+            double centerX = (_startScreen.X + _endScreen.X) / 2.0;
+            double centerY = (_startScreen.Y + _endScreen.Y) / 2.0;
+
+            double x = centerX - textSize.Width / 2.0;
+            double y = centerY - textSize.Height / 2.0;
+
+            // Корректировка позиции в зависимости от выравнивания
+            switch (TextAlignment)
+            {
+                case ObjectTextAlignment.LeftTop:
+                    x = _startScreen.X;
+                    y = _startScreen.Y - textSize.Height - 5;
+                    break;
+                case ObjectTextAlignment.CenterTop:
+                    x = centerX - textSize.Width / 2.0;
+                    y = _startScreen.Y - textSize.Height - 5;
+                    break;
+                case ObjectTextAlignment.RightTop:
+                    x = _endScreen.X - textSize.Width;
+                    y = _startScreen.Y - textSize.Height - 5;
+                    break;
+                case ObjectTextAlignment.LeftMiddle:
+                    x = _startScreen.X;
+                    y = centerY - textSize.Height / 2.0;
+                    break;
+                case ObjectTextAlignment.CenterMiddle:
+                    x = centerX - textSize.Width / 2.0;
+                    y = centerY - textSize.Height / 2.0;
+                    break;
+                case ObjectTextAlignment.RightMiddle:
+                    x = _endScreen.X - textSize.Width;
+                    y = centerY - textSize.Height / 2.0;
+                    break;
+                case ObjectTextAlignment.LeftBottom:
+                    x = _startScreen.X;
+                    y = _endScreen.Y + 5;
+                    break;
+                case ObjectTextAlignment.CenterBottom:
+                    x = centerX - textSize.Width / 2.0;
+                    y = _endScreen.Y + 5;
+                    break;
+                case ObjectTextAlignment.RightBottom:
+                    x = _endScreen.X - textSize.Width;
+                    y = _endScreen.Y + 5;
+                    break;
+            }
+
+            var textRect = new Rect(x, y, textSize.Width, textSize.Height);
+
+            // Рисуем фон (цвет фона графика)
+            if (Theme != null)
+            {
+                var bgBrush = new XBrush(Theme.ChartBackColor); // Изменено с ChartBackground на ChartBackColor
+                visual.FillRectangle(bgBrush, textRect);
+            }
+
+            // Рисуем текст
+            var textBrush = new XBrush(_lineColor);
+            visual.DrawString(_text, font, textBrush, textRect);
+        }
+
+
+
     }
 }
