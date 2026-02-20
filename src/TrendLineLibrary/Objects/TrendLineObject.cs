@@ -124,25 +124,116 @@ namespace TrendLineLibrary.Objects
             _fontSize = 14;
         }
 
+        private Point _startScreen;
+        private Point _endScreen;
+        private Rect _lineBounds;
+
+        protected override void Prepare()
+        {
+            base.Prepare();
+
+            if (Canvas == null || ControlPoints.Length < 2) return;
+
+            // Преобразуем координаты точек в экранные
+            _startScreen = ToPoint(ControlPoints[0]);
+            _endScreen = ToPoint(ControlPoints[1]);
+
+            // Вычисляем ограничивающий прямоугольник для хит-теста
+            double minX = Math.Min(_startScreen.X, _endScreen.X) - 5;
+            double minY = Math.Min(_startScreen.Y, _endScreen.Y) - 5;
+            double maxX = Math.Max(_startScreen.X, _endScreen.X) + 5;
+            double maxY = Math.Max(_startScreen.Y, _endScreen.Y) + 5;
+
+            _lineBounds = new Rect(minX, minY, maxX - minX, maxY - minY);
+        }
+
+
         protected override void Draw(DxVisualQueue visual, ref List<ObjectLabelInfo> labels)
         {
             if (Canvas == null) return;
 
-            // Получаем экранные координаты точек
-            var startPoint = ToPoint(ControlPoints[0]);
-            var endPoint = ToPoint(ControlPoints[1]);
-
-            // Создаем перо для рисования
+            // Используем сохраненные координаты из Prepare()
             var brush = new XBrush(_lineColor);
             var pen = new XPen(brush, _lineWidth, _lineStyle);
 
             // Рисуем линию
-            visual.DrawLine(pen, startPoint, endPoint);
+            visual.DrawLine(pen, _startScreen, _endScreen);
+
+            // Добавляем информацию для подписей (цены)
+            if (DataProvider != null)
+            {
+                labels.Add(new ObjectLabelInfo(ControlPoints[0].Y, _lineColor));
+                labels.Add(new ObjectLabelInfo(ControlPoints[1].Y, _lineColor));
+            }
         }
 
         protected override bool InObject(int x, int y)
         {
-            return false;
+            if (Canvas == null || ControlPoints.Length < 2) return false;
+
+            // Быстрая проверка по ограничивающему прямоугольнику
+            if (!_lineBounds.Contains(x, y)) return false;
+
+            // Точная проверка расстояния до линии
+            double distance = DistanceToSegment(new Point(x, y), _startScreen, _endScreen);
+            return distance <= (LineWidth / 2.0) + 2;
+        }
+
+        public override void DrawControlPoints(DxVisualQueue visual)
+        {
+            if (Canvas == null || ControlPoints.Length < 2 || Theme == null) return;
+
+            // Рисуем контрольные точки для каждого конца линии
+            foreach (var cp in ControlPoints)
+            {
+                Point pt = ToPoint(cp);
+                double size = 6; // Размер точки
+                Rect rect = new Rect(pt.X - size, pt.Y - size, size * 2, size * 2);
+
+                // Используем тему для цветов
+                visual.FillRectangle(Theme.ChartCpFillBrush, rect);
+                visual.DrawRectangle(Theme.ChartCpLinePen, rect);
+            }
+        }
+
+        public override int GetControlPoint(int x, int y)
+        {
+            if (Canvas == null || ControlPoints.Length < 2) return -1;
+
+            double threshold = 10; // Радиус захвата точки
+
+            for (int i = 0; i < ControlPoints.Length; i++)
+            {
+                Point pt = ToPoint(ControlPoints[i]);
+                double distance = Math.Sqrt((x - pt.X) * (x - pt.X) + (y - pt.Y) * (y - pt.Y));
+
+                if (distance <= threshold)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        // Вспомогательный метод для расчета расстояния от точки до отрезка
+        private double DistanceToSegment(Point p, Point a, Point b)
+        {
+            double dx = b.X - a.X;
+            double dy = b.Y - a.Y;
+
+            // Если отрезок вырожден в точку
+            if (dx == 0 && dy == 0)
+                return Math.Sqrt((p.X - a.X) * (p.X - a.X) + (p.Y - a.Y) * (p.Y - a.Y));
+
+            // Вычисляем проекцию точки на отрезок
+            double t = ((p.X - a.X) * dx + (p.Y - a.Y) * dy) / (dx * dx + dy * dy);
+            t = Math.Max(0, Math.Min(1, t));
+
+            // Находим ближайшую точку на отрезке
+            double projX = a.X + t * dx;
+            double projY = a.Y + t * dy;
+
+            // Возвращаем расстояние
+            return Math.Sqrt((p.X - projX) * (p.X - projX) + (p.Y - projY) * (p.Y - projY));
         }
     }
 }
