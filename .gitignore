@@ -1,52 +1,22 @@
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-build/
-bld/
-[Bb]in/
-[Oo]bj/
-[Oo]ut/
-
-# Visual Studio files
-.vs/
+## Ignore Visual Studio temporary files, build results, etc
+bin/
+obj/
 *.user
-*.userosscache
 *.suo
-*.userpreferences
-*.userprej
+*.userosscache
+*.userprefs
+.vs/
 .vscode/
 
-# Test results
-[Tt]est[Rr]esult*/
-[Bb]uild[Ll]og.*
-
-# NuGet packages
+# NuGet Packages
 packages/
 *.nupkg
 
-# Project-specific
-# Не игнорируем сами библиотеки, но игнорируем временные файлы
+# Test results
+TestResults/
+coverage/
+*.trx
+
+# Project specific
 lib/*.dll
 !lib/.gitkeep
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# Logs and databases
-*.log
-*.sqlite
