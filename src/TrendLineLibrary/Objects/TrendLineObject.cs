@@ -171,6 +171,39 @@ namespace TrendLineLibrary.Objects
         private Point _endScreen;
         private Rect _lineBounds;
 
+        public override void CopyTemplate(ObjectBase objectBase, bool style)
+        {
+            base.CopyTemplate(objectBase, style);
+
+            if (objectBase is TrendLineObject obj)
+            {
+                // Копируем настройки линии
+                _lineColor = obj._lineColor;
+                _lineWidth = obj._lineWidth;
+                _lineStyle = obj._lineStyle;
+
+                // Копируем настройки текста
+                _text = obj._text;
+                _textAlignment = obj._textAlignment;
+                _fontSize = obj._fontSize;
+
+                // Копируем настройки поведения
+                _extendLeft = obj._extendLeft;
+                _extendRight = obj._extendRight;
+                _magnetEnabled = obj._magnetEnabled;
+
+                // Уведомляем об изменениях
+                OnPropertyChanged(nameof(LineColor));
+                OnPropertyChanged(nameof(LineWidth));
+                OnPropertyChanged(nameof(LineStyle));
+                OnPropertyChanged(nameof(Text));
+                OnPropertyChanged(nameof(TextAlignment));
+                OnPropertyChanged(nameof(FontSize));
+                OnPropertyChanged(nameof(ExtendLeft));
+                OnPropertyChanged(nameof(ExtendRight));
+                OnPropertyChanged(nameof(MagnetEnabled));
+            }
+        }
 
         protected override void Draw(DxVisualQueue visual, ref List<ObjectLabelInfo> labels)
         {
