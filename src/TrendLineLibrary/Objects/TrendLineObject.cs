@@ -12,7 +12,6 @@ using TigerTrade.Dx.Enums;
 using TigerTrade.Chart.Alerts;
 using TigerTrade.Chart.Indicators.Common;
 using TigerTrade.Core.Utils.Logging;
-using System.Windows.Input;
 
 namespace TrendLineLibrary.Objects
 {
@@ -34,7 +33,7 @@ namespace TrendLineLibrary.Objects
         private int _alertMinDistance = 3;
         private double _lastAlertValue;
         private int _lastAlertIndex;
-        private bool _isAdjusting;
+
 
         // Свойства линии
         [DataMember(Name = "LineColor")]
@@ -206,46 +205,41 @@ namespace TrendLineLibrary.Objects
 
         public override void CopyTemplate(ObjectBase objectBase, bool style)
         {
-            System.Diagnostics.Debug.WriteLine("=== CopyTemplate called ===");
-            System.Diagnostics.Debug.WriteLine($"objectBase type: {objectBase?.GetType()}");
-            System.Diagnostics.Debug.WriteLine($"style: {style}");
+            base.CopyTemplate(objectBase, style);
 
             if (objectBase is TrendLineObject obj)
             {
-                System.Diagnostics.Debug.WriteLine("Target is TrendLineObject");
-                System.Diagnostics.Debug.WriteLine($"Source LineColor: {obj.LineColor}");
-                System.Diagnostics.Debug.WriteLine($"Source LineWidth: {obj.LineWidth}");
-                System.Diagnostics.Debug.WriteLine($"Source Text: {obj.Text}");
 
                 // Копируем алерты
                 Alert.Copy(obj.Alert, !style);
-                OnPropertyChanged(nameof(Alert));
                 AlertMinDistance = obj.AlertMinDistance;
 
-                // Копируем настройки линии (через свойства!)
-                LineColor = obj.LineColor;
-                LineWidth = obj.LineWidth;
-                LineStyle = obj.LineStyle;
+                // Копируем настройки линии
+                _lineColor = obj._lineColor;
+                _lineWidth = obj._lineWidth;
+                _lineStyle = obj._lineStyle;
 
-                // Копируем настройки текста (через свойства!)
-                Text = obj.Text;
-                TextAlignment = obj.TextAlignment;
-                FontSize = obj.FontSize;
+                // Копируем настройки текста
+                _text = obj._text;
+                _textAlignment = obj._textAlignment;
+                _fontSize = obj._fontSize;
 
-                // Копируем настройки поведения (через свойства!)
-                ExtendLeft = obj.ExtendLeft;
-                ExtendRight = obj.ExtendRight;
-                MagnetEnabled = obj.MagnetEnabled;
+                // Копируем настройки поведения
+                _extendLeft = obj._extendLeft;
+                _extendRight = obj._extendRight;
+                _magnetEnabled = obj._magnetEnabled;
 
-                System.Diagnostics.Debug.WriteLine("Copy completed");
+                // Уведомляем об изменениях
+                OnPropertyChanged(nameof(LineColor));
+                OnPropertyChanged(nameof(LineWidth));
+                OnPropertyChanged(nameof(LineStyle));
+                OnPropertyChanged(nameof(Text));
+                OnPropertyChanged(nameof(TextAlignment));
+                OnPropertyChanged(nameof(FontSize));
+                OnPropertyChanged(nameof(ExtendLeft));
+                OnPropertyChanged(nameof(ExtendRight));
+                OnPropertyChanged(nameof(MagnetEnabled));
             }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("Target is NOT TrendLineObject");
-            }
-
-            // ВАЖНО: base.CopyTemplate в конце!
-            base.CopyTemplate(objectBase, style);
         }
 
         protected override void Draw(DxVisualQueue visual, ref List<ObjectLabelInfo> labels)
@@ -316,60 +310,47 @@ namespace TrendLineLibrary.Objects
 
             return -1;
         }
-
-
         public override void ExtraPointChanged(int index, ObjectPoint op)
         {
             base.ExtraPointChanged(index, op);
 
-            if (_isAdjusting) return;
-            _isAdjusting = true;
+            if (!_magnetEnabled || DataProvider == null || Canvas == null) return;
 
             try
             {
-                // Ваш существующий код для примагничивания и отладки
-                if (_magnetEnabled && DataProvider != null && Canvas != null)
-                {
-                    // ... существующий код примагничивания ...
-                }
+                // Получаем индекс свечи по X координате
+                int candleIndex = (int)op.X;
 
-                // НОВОЕ: Выравнивание по горизонтали при нажатом Shift
-                if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+                // Получаем тип графика
+                var stockType = Canvas.StockType;
+
+                // Пробуем получить данные через разные методы
+                // 1. Через GetCluster (для кластеров)
+                // var cluster = DataProvider.GetCluster(candleIndex);
+
+                // 2. Через индикаторы
+                // var value = DataProvider.GetValue(candleIndex);
+
+                System.Diagnostics.Debug.WriteLine($"=== Debug Info ===");
+                System.Diagnostics.Debug.WriteLine($"Candle index: {candleIndex}");
+                System.Diagnostics.Debug.WriteLine($"Stock type: {stockType}");
+                System.Diagnostics.Debug.WriteLine($"DataProvider type: {DataProvider.GetType()}");
+
+                // Выведем все методы DataProvider для понимания
+                var methods = DataProvider.GetType().GetMethods();
+                foreach (var method in methods)
                 {
-                    int otherIndex = (index == 0) ? 1 : 0;
-                    // Устанавливаем Y другой точки равной Y изменённой
-                    ControlPoints[otherIndex].Y = op.Y;
+                    if (method.Name.Contains("Candle") || method.Name.Contains("Get") || method.Name.Contains("Item"))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Method: {method.Name}");
+                    }
                 }
             }
-            finally
+            catch (Exception ex)
             {
-                _isAdjusting = false;
+                System.Diagnostics.Debug.WriteLine($"Error in magnet: {ex.Message}");
             }
         }
-        /*
-
-        public override void ControlPointChanged(int index)
-        {
-            base.ControlPointChanged(index);
-
-            if (_isAdjusting) return;
-            _isAdjusting = true;
-
-            try
-            {
-                // Выравнивание по горизонтали при нажатом Shift
-                if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-                {
-                    int otherIndex = (index == 0) ? 1 : 0;
-                    // Устанавливаем Y другой точки равной Y изменённой
-                    ControlPoints[otherIndex].Y = ControlPoints[index].Y;
-                }
-            }
-            finally
-            {
-                _isAdjusting = false;
-            }
-        } */
 
         public override void CheckAlert(List<IndicatorBase> indicators)
         {
