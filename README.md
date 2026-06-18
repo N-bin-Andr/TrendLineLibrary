@@ -176,7 +176,7 @@ dotnet test
 
 ## 📞 Контакты
 Разработчик: Ahim
-Email: [ваш.email@example.com]
+Email: n.bin.andr@gmail.com
 
 Tiger Trade Community: [ссылка на форум/чат]
 
