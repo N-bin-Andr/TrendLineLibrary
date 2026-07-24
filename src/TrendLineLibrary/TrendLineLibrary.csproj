@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Ссылки на WPF сборки для .NET Framework -->
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Tiger Trade dependencies -->
+    <Reference Include="TigerTrade.Chart">
+      <HintPath>..\..\lib\TigerTrade.Chart.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Dx">
+      <HintPath>..\..\lib\TigerTrade.Dx.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Core">
+      <HintPath>..\..\lib\TigerTrade.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Tc">
+      <HintPath>..\..\lib\TigerTrade.Tc.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
