@@ -9,6 +9,9 @@ using TigerTrade.Chart.Objects.Common;
 using TigerTrade.Chart.Objects.Enums;
 using TigerTrade.Dx;
 using TigerTrade.Dx.Enums;
+using TigerTrade.Chart.Alerts;
+using TigerTrade.Chart.Indicators.Common;
+using TigerTrade.Core.Utils.Logging;
 
 namespace TrendLineLibrary.Objects
 {
@@ -26,6 +29,10 @@ namespace TrendLineLibrary.Objects
         private bool _extendLeft = false;
         private bool _extendRight = false;
         private bool _magnetEnabled = true;
+        private ChartAlertSettings _alert;
+        private int _alertMinDistance = 3;
+        private double _lastAlertValue;
+        private int _lastAlertIndex;
 
 
         // Свойства линии
@@ -148,6 +155,31 @@ namespace TrendLineLibrary.Objects
                 OnPropertyChanged();
             }
         }
+        [DataMember(Name = "Alert")]
+        [Category("Оповещение"), DisplayName("Оповещение")]
+        public ChartAlertSettings Alert
+        {
+            get => _alert ?? (_alert = new ChartAlertSettings());
+            set
+            {
+                if (Equals(value, _alert)) return;
+                _alert = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [DataMember(Name = "AlertMinDistance")]
+        [Category("Оповещение"), DisplayName("Мин. расстояние")]
+        public int AlertMinDistance
+        {
+            get => _alertMinDistance;
+            set
+            {
+                if (value == _alertMinDistance) return;
+                _alertMinDistance = value;
+                OnPropertyChanged();
+            }
+        }
 
         protected override int PenWidth => LineWidth;
 
@@ -171,6 +203,44 @@ namespace TrendLineLibrary.Objects
         private Point _endScreen;
         private Rect _lineBounds;
 
+        public override void CopyTemplate(ObjectBase objectBase, bool style)
+        {
+            base.CopyTemplate(objectBase, style);
+
+            if (objectBase is TrendLineObject obj)
+            {
+
+                // Копируем алерты
+                Alert.Copy(obj.Alert, !style);
+                AlertMinDistance = obj.AlertMinDistance;
+
+                // Копируем настройки линии
+                _lineColor = obj._lineColor;
+                _lineWidth = obj._lineWidth;
+                _lineStyle = obj._lineStyle;
+
+                // Копируем настройки текста
+                _text = obj._text;
+                _textAlignment = obj._textAlignment;
+                _fontSize = obj._fontSize;
+
+                // Копируем настройки поведения
+                _extendLeft = obj._extendLeft;
+                _extendRight = obj._extendRight;
+                _magnetEnabled = obj._magnetEnabled;
+
+                // Уведомляем об изменениях
+                OnPropertyChanged(nameof(LineColor));
+                OnPropertyChanged(nameof(LineWidth));
+                OnPropertyChanged(nameof(LineStyle));
+                OnPropertyChanged(nameof(Text));
+                OnPropertyChanged(nameof(TextAlignment));
+                OnPropertyChanged(nameof(FontSize));
+                OnPropertyChanged(nameof(ExtendLeft));
+                OnPropertyChanged(nameof(ExtendRight));
+                OnPropertyChanged(nameof(MagnetEnabled));
+            }
+        }
 
         protected override void Draw(DxVisualQueue visual, ref List<ObjectLabelInfo> labels)
         {
@@ -282,7 +352,36 @@ namespace TrendLineLibrary.Objects
             }
         }
 
+        public override void CheckAlert(List<IndicatorBase> indicators)
+        {
+            if (!Alert.IsActive || DataProvider == null || ControlPoints.Length < 2) return;
 
+            try
+            {
+                // Уравнение линии: y = a * x + b, где x - индекс свечи
+                double x1 = ControlPoints[0].X;
+                double y1 = ControlPoints[0].Y;
+                double x2 = ControlPoints[1].X;
+                double y2 = ControlPoints[1].Y;
+                double a = (y2 - y1) / (x2 - x1);
+                double b = y1 - a * x1;
+
+                foreach (var indicator in indicators)
+                {
+                    // Проверяем каждую свечу на графике
+                    if (indicator.CheckAlert(ControlPoints[0].Y, AlertMinDistance, ref _lastAlertIndex, ref _lastAlertValue) ||
+                        indicator.CheckAlert(ControlPoints[1].Y, AlertMinDistance, ref _lastAlertIndex, ref _lastAlertValue))
+                    {
+                        string message = $"{indicator.Name}: пересечение трендовой линии на уровне {DataProvider.Symbol.FormatPrice((decimal)ControlPoints[0].Y)}.";
+                        AddAlert(Alert, message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.WriteError(ex);
+            }
+        }
 
         // Вспомогательный метод для расчета расстояния от точки до отрезка
         private double DistanceToSegment(Point p, Point a, Point b)
