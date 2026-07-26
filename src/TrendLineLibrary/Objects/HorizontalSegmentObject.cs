@@ -272,11 +272,14 @@ namespace TrendLineLibrary.Objects
 
         public override void DrawControlPoints(DxVisualQueue visual)
         {
-            if (Canvas == null || ControlPoints.Length < 2 || Theme == null) return;
+            if (Canvas == null || ControlPoints == null || ControlPoints.Length < 2 || Theme == null) return;
 
-            foreach (var cp in ControlPoints)
+            for (int i = 0; i < ControlPoints.Length; i++)
             {
-                Point pt = ToPoint(cp);
+                // ПРОПУСКАЕМ СРЕДНЮЮ ТОЧКУ (индекс 2)
+                if (i == 2) continue;
+
+                Point pt = ToPoint(ControlPoints[i]);
                 double size = 6;
                 Rect rect = new Rect(pt.X - size, pt.Y - size, size * 2, size * 2);
 
