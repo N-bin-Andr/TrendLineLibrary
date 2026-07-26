@@ -1,32 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <OutputType>Library</OutputType>
+    <UseWPF>true</UseWPF>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Ссылки на WPF сборки для .NET Framework -->
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xaml" />
+
+    <!-- Tiger Trade библиотеки -->
+    <Reference Include="TigerTrade.Chart">
+      <HintPath>C:\Program Files (x86)\TigerTrade\TigerTrade.Chart.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Core">
+      <HintPath>C:\Program Files (x86)\TigerTrade\TigerTrade.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Dx">
+      <HintPath>C:\Program Files (x86)\TigerTrade\TigerTrade.Dx.dll</HintPath>
+    </Reference>
+    <Reference Include="TigerTrade.Tc">
+      <HintPath>C:\Program Files (x86)\TigerTrade\TigerTrade.Tc.dll</HintPath>
+    </Reference>
+
+    <!-- WPF -->
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
-    <Reference Include="System.Xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Tiger Trade dependencies -->
-    <Reference Include="TigerTrade.Chart">
-      <HintPath>..\..\lib\TigerTrade.Chart.dll</HintPath>
-    </Reference>
-    <Reference Include="TigerTrade.Dx">
-      <HintPath>..\..\lib\TigerTrade.Dx.dll</HintPath>
-    </Reference>
-    <Reference Include="TigerTrade.Core">
-      <HintPath>..\..\lib\TigerTrade.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="TigerTrade.Tc">
-      <HintPath>..\..\lib\TigerTrade.Tc.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
